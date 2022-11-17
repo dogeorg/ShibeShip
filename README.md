@@ -1,5 +1,5 @@
 <h1 align="center">
-DogeGarden
+HappyShibes
 <br><br>
 <img src="https://shibeship.com/img/shibeship_preview.png" alt="ShibeShip - Opensource Listings Store using LibDogecoin with Dogecoin BlockChain"/>
 <br><br>
