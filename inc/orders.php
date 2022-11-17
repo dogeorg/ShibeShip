@@ -26,7 +26,7 @@ $orders = $pdo->query("SELECT * FROM generated where id_product = '".$products["
       // We Show the private Key
 ?>
 <div class="alert alert-dark" role="alert">
-  Use this private key to be able to access your Dogecoin Wallet. We recomend to move the Dogecoin out of this wallet to anouther wallet. Privbate Key: <?php echo $orders["doge_private"]; ?>
+  <p>Use this private key to be able to access your Dogecoin Wallet. We recomend to move the Dogecoin out of this wallet to another wallet.</p> <p> Private Key: <?php echo $orders["doge_private"]; ?> </p>
 </div>
 
 
