@@ -25,8 +25,9 @@ if(isset($_GET["do"])){
 
     if ($_GET["do"] == "private"){
 
-$products = $pdo->query("SELECT * FROM products where id = '".$d->CleanEmail($_GET["id"])."' limit 1")->fetch();
-$orders = $pdo->query("SELECT * FROM generated where id_product = '".$products["id"]."'")->fetch();
+$orders = $pdo->query("SELECT * FROM generated where id = '".$d->CleanString($_GET["id"])."'")->fetch();
+$products = $pdo->query("SELECT * FROM products where id = '".$orders["id_product"]."' limit 1")->fetch();
+
       // We Show the private Key
 ?>
 <div class="alert alert-dark" role="alert">
@@ -86,7 +87,7 @@ if (!isset($_GET["do"])){
                       <span class="sr-only"><?php echo $lang["options"]; ?></span>
                     </button>
                     <div class="dropdown-menu" role="menu" style="">
-                      <a class="dropdown-item" href="?d=<?php echo $_GET["d"]; ?>&do=private&id=<?php echo $products["id"];?>"><i class="far fa fa-eye nav-icon"></i> <i class="far fa fa-lock" aria-hidden="true"></i> <?php echo $lang["view"]; ?></a>
+                      <a class="dropdown-item" href="?d=<?php echo $_GET["d"]; ?>&do=private&id=<?php echo $orders["id"];?>"><i class="far fa fa-eye nav-icon"></i> <i class="far fa fa-lock" aria-hidden="true"></i> <?php echo $lang["view"]; ?></a>
                     </div>
                   </div>
 

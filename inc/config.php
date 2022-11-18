@@ -5,10 +5,8 @@
 *   Description: Real use case of the Dogecoin BlockChain to sell products and services
 *   License: Well, do what you want with this, be creative, you have the wheel, just reenvent and do it better! Do Only Good Everyday
 */
- //ini_set('display_errors', 1);
+//ini_set('display_errors', 1);
 session_start();
-
-
     // Add your Data Base credentials here!
     $config["dbhost"] = "localhost";  // put here you database adress
     $config["dbname"] = ""; // your DB name

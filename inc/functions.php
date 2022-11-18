@@ -41,7 +41,7 @@ class DogeBridge {
   // Add Buy
 
 
-  public function InsertBuy($id_product,$doge_public,$doge_private,$amount,$doge_address,$name,$email,$address,$postal_code,$country,$city,$phone)
+  public function InsertBuy($id_product,$doge_public,$doge_private,$amount,$doge_address,$name,$email,$address,$postal_code,$country,$city,$phone,$pin)
     {
 
       $this->pdo->query("INSERT INTO `generated` (
@@ -61,7 +61,7 @@ class DogeBridge {
       ) VALUES (
       '".$id_product."',
       '".$doge_public."',
-      '".$doge_private."',
+      '".$this->EncryptPrivate($pin,$doge_private)."',
       '".$amount."',
       '".$doge_address."',
       '".$name."',
@@ -98,6 +98,18 @@ class DogeBridge {
       WHERE id = '".$id."' limit 1");
 
       return null;
+    }
+
+  // Encrypt Doge Private with a pin from the buyer
+  public function EncryptPrivate($pin,$doge_private)
+    {
+      return openssl_encrypt($doge_private, "AES-128-CTR", $pin, 0, 1234567891011121);;
+    }
+
+  // Decrypt Doge Private with a pin from the buyer
+  public function DecryptPrivate($pin,$doge_private)
+    {
+      return openssl_decrypt($doge_private, "AES-128-CTR", $pin, 0, 1234567891011121);
     }
 
 //// Pages /////////

@@ -19,18 +19,52 @@ exit();
 // we check if there is a variable defined
 if(isset($_GET["do"])){
 
-    if ($_GET["do"] == "private"){
-
-$products = $pdo->query("SELECT * FROM products where id = '".$d->CleanEmail($_GET["id"])."' and id_shibe = '".$_SESSION["shibe"]."' limit 1")->fetch();
-$orders = $pdo->query("SELECT * FROM generated where id_product = '".$products["id"]."'")->fetch();
+    if ($_GET["do"] == "pin"){
       // We Show the private Key
 ?>
+<div class="alert alert-warning" role="alert">
+  <i class="fa fa-lock" aria-hidden="true"></i> Ask the Buyer the <b>PIN</b> code for you to be able to access the wallet Private Key
+</div>
+ <form method="post" action="?d=<?php echo $_GET["d"]; ?>&id=<?php echo $_GET["id"]; ?>&do=private">
+                  <input type="hidden" name="action" value="save" />
+                  <div class="row">
+                    <div class="col-sm-12">
+                      <div class="form-group">
+                        <label for="pin">PIN code</label>
+                        <input type="password" maxlength="255" name="pin" class="form-control is-invalid" value="" placeholder="" required="required">
+                        <div id="pin" class="invalid-feedback">
+                            <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Enter the <b>PIN</b> Code. Without the <b>PIN</b> the money is lost forever.
+                        </div>
+                      </div>
+                    </div>
+                    </div>
+                <div><button type="submit" class="btn btn-block btn-warning" ><i class="fa fa-unlock-alt" aria-hidden="true"></i> Decrypt</button></div>
+</form>
+
+<?php
+    };
+
+    if ($_GET["do"] == "private"){
+
+$orders = $pdo->query("SELECT * FROM generated where id = '".$d->CleanString($_GET["id"])."'")->fetch();
+$products = $pdo->query("SELECT * FROM products where id = '".$orders["id_product"]."' and id_shibe = '".$_SESSION["shibe"]."' limit 1")->fetch();
+if (isset($products["id"])){
+
+?>
 <div class="alert alert-dark" role="alert">
-  Use this private key to be able to access your Dogecoin Wallet. We recomend to move the Dogecoin out of this wallet to anouther wallet. Privbate Key: <?php echo $orders["doge_private"]; ?>
+  Use this private key to be able to access your Dogecoin Wallet. We recomend to move the Dogecoin out of this wallet to anouther wallet. Privbate Key: <?php echo openssl_decrypt($orders["doge_private"], "AES-128-CTR", $_POST["pin"], 0, 1234567891011121); ?>
 </div>
 
 
 <?php
+}else{
+?>
+     <script>
+            window.location.href = "//<?php echo $_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']; ?>";
+    </script>
+<?php
+}
+
     };
 };
 ?>
@@ -82,7 +116,7 @@ if (!isset($_GET["do"])){
                       <span class="sr-only"><?php echo $lang["options"]; ?></span>
                     </button>
                     <div class="dropdown-menu" role="menu" style="">
-                      <a class="dropdown-item" href="?d=<?php echo $_GET["d"]; ?>&do=private&id=<?php echo $products["id"];?>"><i class="far fa fa-eye nav-icon"></i> <i class="far fa fa-lock" aria-hidden="true"></i> <?php echo $lang["view"]; ?></a>
+                      <a class="dropdown-item" href="?d=<?php echo $_GET["d"]; ?>&do=pin&id=<?php echo $orders["id"];?>"><i class="far fa fa-eye nav-icon"></i> <i class="far fa fa-lock" aria-hidden="true"></i> <?php echo $lang["view"]; ?></a>
                     </div>
                   </div>
 
