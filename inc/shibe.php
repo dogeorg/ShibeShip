@@ -53,7 +53,7 @@ if(isset($_POST["action"])){
 
             $logo = "<img src='https://shibeship.com/img/shibeship.png' style='width:100%' /><br><br>";
             $mail_subject = "Much verify Shibe Account!";
-            $mail_message = $logo."Hello ".$d->CleanString($_POST["name"]).",<br><br>To activate your Shibe account please click on this link: https://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']."?shibe=activate&hash=".hash('sha256', $_POST["password"])."&email=".$d->CleanEmail($_POST["email"])."<br><br>Much Thanks!";
+            $mail_message = $logo."Hello ".$d->CleanString($_POST["name"]).",<br><br>To activate your Shibe account please click on this link: <a href='https://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']."?shibe=activate&hash=".hash('sha256', $_POST["password"])."&email=".$d->CleanEmail($_POST["email"])."'>https://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']."?shibe=activate&hash=".hash('sha256', $_POST["password"])."&email=".$d->CleanEmail($_POST["email"])."</a><br><br>Much Thanks!";
             $d->SendEmail($config["mail_name_from"],$config["email_from"],$d->CleanEmail($_POST["email"]),$mail_subject,$mail_message);
 ?>
     <script>

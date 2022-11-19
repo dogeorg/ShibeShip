@@ -34,16 +34,16 @@ if(isset($_POST["action"])){
     };
 
     if ( $_GET["do"] == "insert"){
-        $d->InsertProduct($_SESSION["shibe"],$_POST["id_cat"],$_POST["cat_tax"],$_POST["doge"],$_POST["fiat"],$_POST["moon_new"],$_POST["moon_full"],$_POST["qty"],$_POST["weight"],$_POST["highlighted"],$_POST["title"],$_POST["text"],$_POST["imgs"],$_POST["ord"],date('Y-m-d H:i:s'),$_POST["active"]);
+        $d->InsertProduct(0,$_POST["id_cat"],$_POST["cat_tax"],$_POST["doge"],$_POST["fiat"],$_POST["moon_new"],$_POST["moon_full"],$_POST["qty"],$_POST["weight"],$_POST["highlighted"],$_POST["title"],$_POST["text"],$_POST["imgs"],$_POST["ord"],date('Y-m-d H:i:s'),$_POST["active"]);
     }
     if ( $_GET["do"] == "update"){
-        $d->UpdateProduct($_POST["id_cat"],$_POST["cat_tax"],$_POST["doge"],$_POST["fiat"],$_POST["moon_new"],$_POST["moon_full"],$_POST["qty"],$_POST["weight"],$_POST["highlighted"],$_POST["title"],$_POST["text"],$_POST["imgs"],$_POST["ord"],date('Y-m-d H:i:s'),$_POST["active"],$_POST["id"],$_SESSION["shibe"]);
+        $d->UpdateProduct($_POST["id_cat"],$_POST["cat_tax"],$_POST["doge"],$_POST["fiat"],$_POST["moon_new"],$_POST["moon_full"],$_POST["qty"],$_POST["weight"],$_POST["highlighted"],$_POST["title"],$_POST["text"],$_POST["imgs"],$_POST["ord"],date('Y-m-d H:i:s'),$_POST["active"],$_POST["id"],"%");
     };
     $_GET["id"] = null; $_GET["do"] = null; $_GET["action"] = null;
 };
 
     if ( $_GET["do"] == "remove"){
-        $d->RemoveProduct($_GET["id"],$_SESSION["shibe"]);
+        $d->RemoveProduct($_GET["id"],"%");
         $_GET["id"] = null; $_GET["do"] = null;
     };
   // we check are going to insert a new record or update
@@ -262,14 +262,10 @@ if (!isset($_GET["do"])){
                     <th><?php echo $lang["title"]; ?></th>
                     <th>Ð <?php echo $lang["doge"]; ?></th>
                     <th><?php echo strtoupper($config["fiat"]); ?></th>
-                    <!--<th><?php echo $lang["tax"]; ?> %</th>-->
                     <th><?php echo $lang["moon_new"]; ?></th>
                     <th><?php echo $lang["moon_full"]; ?></th>
-                    <!--<th><?php echo $lang["qty"]; ?></th>-->
                     <th><?php echo $lang["img"]; ?></th>
-                    <!--<th><?php echo $lang["highlighted"]; ?></th>
-                    <th><?php echo $lang["ord"]; ?></th>
-                    <th><?php echo $lang["active"]; ?></th>-->
+                    <th><?php echo $lang["active"]; ?></th>
                     <th><?php echo $lang["options"]; ?></th>
                   </tr>
                   </thead>
@@ -295,39 +291,27 @@ if (!isset($_GET["do"])){
                         ?>
                     </td>
                     <td><?php echo $row["title"];?></td>
-                    <td>
-                    Ð <?php if ($row["doge"] == 0){ echo $d->FiatDogeRates($row["fiat"], $config["fiat"]); }else{ echo number_format((float)($row["doge"]), 2, '.', ''); };?>
-                    </td>
+                    <td>Ð <?php if ($row["doge"] == 0){ echo $d->FiatDogeRates($row["fiat"], $config["fiat"]); }else{ echo number_format((float)($row["doge"]), 2, '.', ''); };?></td>
                     <td><?php echo number_format((float)($row["fiat"]), 2, '.', '');?></td>
-                    <!--<td><?php echo $row["cat_tax"];?></td>-->
                     <td><?php echo $row["moon_new"];?></td>
                     <td><?php echo $row["moon_full"];?></td>
-                    <!--<td><?php echo $row["qty"];?></td>-->
-                    <td>
-                      <?php if (isset($row["imgs"]) and $row["imgs"] != ""){ $imgs = explode(",", $row["imgs"]); ?><img src="../fl/<?php echo $imgs[0]; ?>" style="max-width: 50px"><?php }; ?>
-                    </td>
-                    <td>
-                            <?php if ($row["highlighted"] == 0 ){ echo $lang["disable"]; }; ?>
-                            <?php if ($row["highlighted"] == 1 ){ echo $lang["active"]; }; ?>
-                    </td>
-                    <!--<td><?php echo $row["ord"];?></td>
+                    <td><?php if (isset($row["imgs"]) and $row["imgs"] != ""){ $imgs = explode(",", $row["imgs"]); ?><img src="../fl/<?php echo $imgs[0]; ?>" style="max-width: 50px"><?php }; ?></td>
                     <td>
                             <?php if ($row["active"] == 0 ){ echo $lang["disable"]; }; ?>
                             <?php if ($row["active"] == 1 ){ echo $lang["active"]; }; ?>
-                    </td>-->
+                    </td>
                     <td>
-                    <div class="btn-group">
-                    <button type="button" class="btn btn-warning" data-toggle="dropdown" ><i class="far fa fa-edit nav-icon"></i> <?php echo $lang["options"]; ?></button>
-                    <button type="button" class="btn btn-warning dropdown-toggle dropdown-icon" data-toggle="dropdown" aria-expanded="false">
-                      <span class="sr-only"><?php echo $lang["options"]; ?></span>
-                    </button>
-                    <div class="dropdown-menu" role="menu" style="">
-                      <a class="dropdown-item" href="?d=<?php echo $_GET["d"]; ?>&do=update&id=<?php echo $row["id"];?>"><i class="far fa fa-edit nav-icon"></i> <?php echo $lang["update"]; ?></a>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item remove" href="?d=<?php echo $_GET["d"]; ?>&do=remove&id=<?php echo $row["id"];?>" ><i class="far fa fa-trash-alt nav-icon"></i> <?php echo $lang["remove"]; ?></a>
-                    </div>
-                  </div>
-
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-warning" data-toggle="dropdown" ><i class="far fa fa-edit nav-icon"></i> <?php echo $lang["options"]; ?></button>
+                            <button type="button" class="btn btn-warning dropdown-toggle dropdown-icon" data-toggle="dropdown" aria-expanded="false">
+                              <span class="sr-only"><?php echo $lang["options"]; ?></span>
+                            </button>
+                            <div class="dropdown-menu" role="menu" style="">
+                              <a class="dropdown-item" href="?d=<?php echo $_GET["d"]; ?>&do=update&id=<?php echo $row["id"];?>"><i class="far fa fa-edit nav-icon"></i> <?php echo $lang["update"]; ?></a>
+                              <div class="dropdown-divider"></div>
+                              <a class="dropdown-item remove" href="?d=<?php echo $_GET["d"]; ?>&do=remove&id=<?php echo $row["id"];?>" ><i class="far fa fa-trash-alt nav-icon"></i> <?php echo $lang["remove"]; ?></a>
+                            </div>
+                        </div>
                     </td>
                   </tr>
                   <?php

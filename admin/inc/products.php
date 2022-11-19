@@ -256,14 +256,10 @@ if (!isset($_GET["do"])){
                     <th><?php echo $lang["title"]; ?></th>
                     <th>Ð <?php echo $lang["doge"]; ?></th>
                     <th><?php echo strtoupper($config["fiat"]); ?></th>
-                    <!--<th><?php echo $lang["tax"]; ?> %</th>-->
                     <th><?php echo $lang["moon_new"]; ?></th>
                     <th><?php echo $lang["moon_full"]; ?></th>
-                    <!--<th><?php echo $lang["qty"]; ?></th>-->
                     <th><?php echo $lang["img"]; ?></th>
-                    <!--<th><?php echo $lang["highlighted"]; ?></th>
-                    <th><?php echo $lang["ord"]; ?></th>
-                    <th><?php echo $lang["active"]; ?></th>-->
+                    <th><?php echo $lang["active"]; ?></th>
                     <th><?php echo $lang["options"]; ?></th>
                   </tr>
                   </thead>
@@ -293,22 +289,15 @@ if (!isset($_GET["do"])){
                     Ð <?php if ($row["doge"] == 0){ echo $d->FiatDogeRates($row["fiat"], $config["fiat"]); }else{ echo number_format((float)($row["doge"]), 2, '.', ''); };?>
                     </td>
                     <td><?php echo number_format((float)($row["fiat"]), 2, '.', '');?></td>
-                    <!--<td><?php echo $row["cat_tax"];?></td>-->
                     <td><?php echo $row["moon_new"];?></td>
                     <td><?php echo $row["moon_full"];?></td>
-                    <!--<td><?php echo $row["qty"];?></td>-->
                     <td>
                       <?php if (isset($row["imgs"]) and $row["imgs"] != ""){ $imgs = explode(",", $row["imgs"]); ?><img src="../fl/<?php echo $imgs[0]; ?>" style="max-width: 50px"><?php }; ?>
                     </td>
                     <td>
-                            <?php if ($row["highlighted"] == 0 ){ echo $lang["disable"]; }; ?>
-                            <?php if ($row["highlighted"] == 1 ){ echo $lang["active"]; }; ?>
-                    </td>
-                    <!--<td><?php echo $row["ord"];?></td>
-                    <td>
                             <?php if ($row["active"] == 0 ){ echo $lang["disable"]; }; ?>
                             <?php if ($row["active"] == 1 ){ echo $lang["active"]; }; ?>
-                    </td>-->
+                    </td>
                     <td>
                     <div class="btn-group">
                     <button type="button" class="btn btn-warning" data-toggle="dropdown" ><i class="far fa fa-edit nav-icon"></i> <?php echo $lang["options"]; ?></button>
