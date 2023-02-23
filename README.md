@@ -1,11 +1,11 @@
 <h1 align="center">
-HappyShibes
+ShibeShip
 <br><br>
-<img src="https://shibeship.com/img/shibeship_preview.png" alt="ShibeShip - Opensource Listings Store using LibDogecoin with Dogecoin BlockChain"/>
+<img src="https://shibeship.com/img/shibeship_preview.png" alt="ShibeShip - Opensource Online marketplace using LibDogecoin on Dogecoin BlockChain"/>
 <br><br>
 </h1>
 
-## What is the HappyShibes (ShibeShip)
+## What is the ShibeShip
 
 Its a Opensource classified advertisements website like CraigList or eBay, powered by LibDogecoin, that anyone can buy and sell any product or services using only Dogecoin.
 
