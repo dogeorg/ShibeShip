@@ -63,10 +63,10 @@ if(isset($_POST["action"])){
                         <select class="form-control" name="lang">
                           <option value="<?php echo $lang["default"]; ?>"><?php echo $lang["default"]; ?></option>
                           <option value="EN">EN</option>
-                          <option value="DE">DE</option>
+                          <!--<option value="DE">DE</option>
                           <option value="FR">FR</option>
                           <option value="ES">ES</option>
-                          <option value="PT">PT</option>
+                          <option value="PT">PT</option>-->
                           <?php if (isset($row["lang"])){ ?> <option value="<?php echo $row["lang"];?>" selected="selected"><?php echo $row["lang"];?></option><?php }; ?>
                         </select>
                       </div>
@@ -80,49 +80,66 @@ if(isset($_POST["action"])){
                     <div class="col-sm-6">
                       <div class="form-group">
                         <label><?php echo $lang["sub_category"]; ?></label>
-                        <select class="form-control" name="id_cat">
+                        <select class="form-control" name="id_cat" required="required">
+                        <option value="0">---</option>
                         <?php
-                            $dbsub = $pdo->query("SELECT * FROM categories");
-                            if(isset($_GET["id"])){ $dbsub = $pdo->query("SELECT * FROM categories where id <> ".$_GET["id"]); };                            
+                            $dbsub = $pdo->query("SELECT * FROM categories where id_cat = 0");
+                            //if(isset($_GET["id"])){ $dbsub = $pdo->query("SELECT * FROM categories where id <> ".$_GET["id"]); };                            
                             while ($rowsub = $dbsub->fetch()) {
+                              $subs = NULL;
+                              if ($rowsub["lang"] == "gb"){ $rowsub["lang"] = "EN"; };
+                              $dbsubc = $pdo->query("SELECT * FROM categories where id_cat = ".$rowsub["id"]);
+                              //if(isset($_GET["id"])){ $dbsub = $pdo->query("SELECT * FROM categories where id <> ".$_GET["id"]); };                            
+                              while ($rowsubc = $dbsubc->fetch()) {
+                                $subs = 1;
+                          ?>
+                                  <option value="<?php echo  $rowsubc["id"];?>" ><?php echo $rowsub["lang"]." > ".$rowsub["title"]." > ".$rowsubc["title"];?></option>
+                          <?php
+                              }
+                              if (!isset($subs)){
+                                $subs = NULL;
                         ?>
-                                <option value="<?php echo  $rowsub["id"];?>" ><?php echo $rowsub["lang"]."->".$rowsub["title"];?></option>
+                                <option value="<?php echo  $rowsub["id"];?>" ><?php echo $rowsub["lang"]." > ".$rowsub["title"];?></option>
                         <?php
+                        };
                         };
                         ?>
                         <?php
                         if ($row["id_cat"] > 0 ){
                             $dbsub = $pdo->query("SELECT * FROM categories where id = '".$row["id_cat"]."' limit 1");
                             while ($rowsub = $dbsub->fetch()) {
+                              if ($rowsub["lang"] == "gb"){ $rowsub["lang"] = "EN"; };
+                              if(isset($rowsub["id_cat"])){
+                                $dbsubc = $pdo->query("SELECT * FROM categories where id = '".$rowsub["id_cat"]."' limit 1")->fetch();
+                              };
                         ?>
-                                <option value="<?php echo  $rowsub["id"];?>" selected="selected" ><?php echo $rowsub["lang"]." -> ".$rowsub["title"];?></option>
+                                <option value="<?php echo  $rowsub["id"];?>" selected="selected" ><?php echo $rowsub["lang"]." > "; ?><?php if (isset($dbsubc["title"])){ echo $dbsubc["title"] . " > "; } ?><?php echo $rowsub["title"];?></option>
                         <?php
                             };
                         }else{
                           ?>
-                                <option value="0" selected="selected" >---</option>
+                                <option value="0">---</option>
                           <?php
                         }
                         ?>
-                                <option value="0" selected="selected" >---</option>
                         </select>
                       </div>
                     </div>
                     <div class="col-sm-6">
                       <div class="form-group">
-                        <label><?php echo $lang["icon"]; ?></label>
-                        <input type="text" name="icon" class="form-control" value="<?php if (isset($row["icon"])){ echo $row["icon"]; }else{ echo "ellipsis-v"; }; ?>" placeholder="ellipsis-v" required="required">
+                        <label><a href="https://fontawesome.com/search?q=phot&o=r&m=free" target="_blank"><?php echo $lang["icon"]; ?></a></label>
+                        <input type="text" name="icon" class="form-control" value="<?php if (isset($row["icon"])){ echo $row["icon"]; }else{ echo "fa-solid fa-paw"; }; ?>" placeholder="fa-solid fa-paw" required="required">
                       </div>
                     </div>
-                    <div class="col-sm-12">
+                    <!--<div class="col-sm-12">
                       <div class="form-group">
                         <label><?php echo $lang["text"]; ?></label>
                         <textarea id="summernote" name="text" required="required">
                           <?php if (isset($row["text"])){ echo $row["text"]; }; ?>
                         </textarea>
                       </div>
-                    </div>
-                    <div class="col-sm-4">
+                    </div>-->
+                    <!--<div class="col-sm-4">
                       <div class="form-group">
                         <label><?php echo $lang["img"]; ?></label>
                         <div class="custom-file">
@@ -131,15 +148,15 @@ if(isset($_POST["action"])){
                           <label class="custom-file-label" for="img"><?php echo $lang["img"]; ?></label>
                         </div>
                       </div>
-                    </div>
-                    <div class="col-sm-4">
+                    </div>-->
+                    <div class="col-sm-6">
                       <div class="form-group">
                         <label><?php echo $lang["ord"]; ?></label>
                         <input type="number" name="ord" class="form-control" min="0" value="<?php if (isset($row["ord"])){ echo $row["ord"]; }else{ echo "0"; }; ?>" placeholder="0">
                       </div>
                     </div>
 
-                    <div class="col-sm-4">
+                    <div class="col-sm-6">
                       <div class="form-group">
                         <label><?php echo $lang["active"]; ?></label>
                         <select class="form-control" name="active">
@@ -182,7 +199,7 @@ if (!isset($_GET["do"])){
                     <th><?php echo $lang["icon"]; ?></th>
                     <th><?php echo $lang["cat"]; ?></th>
                     <th><?php echo $lang["title"]; ?></th>
-                    <th><?php echo $lang["img"]; ?></th>
+                    <!--<th><?php echo $lang["img"]; ?></th>-->
                     <th><?php echo $lang["ord"]; ?></th>
                     <th><?php echo $lang["active"]; ?></th>
                     <th><?php echo $lang["options"]; ?></th>
@@ -212,9 +229,9 @@ if (!isset($_GET["do"])){
                         ?>
                     </td>
                     <td><?php echo $row["title"];?></td>
-                    <td>
+                    <!--<td>
                       <?php if ($row["img"] != ""){ ?><img src="../fl/<?php echo $row["img"];?>" style="max-width: 50px"><?php }; ?>
-                    </td>
+                    </td>-->
                     <td><?php echo $row["ord"];?></td>
                     <td>
                             <?php if ($row["active"] == 0 ){ echo $lang["disable"]; }; ?>

@@ -6,23 +6,21 @@
 *   License: Well, do what you want with this, be creative, you have the wheel, just reenvent and do it better! Do Only Good Everyday
 */
 
-    // if check if the config file is loaded
-    If (!defined('ROOTPATH')){
-        exit();
-     };
-    // Include the LibDogecoin
-    require_once ROOTPATH.'/vendors/libdogecoin-php/libdogecoin-bind.php';
+// We define the root path
+define('ROOTPATH', __DIR__);
 
-    // Add the PDO DB Connection
-    $db = 'mysql:host='.$config["dbhost"].';dbname='.$config["dbname"];
-    $opt = [ PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false, ];
-    try {
-      $pdo = new PDO($db, $config["dbuser"], $config["dbpass"], $opt);
-      }
-    catch (PDOException $e) {
-      echo '<div style="top: 50%;left: 50%; position: absolute;-webkit-transform: translate(-50%, -50%);transform: translate(-50%, -50%);font-family: Comic Sans MS;word-break: break-all;max-width:416px"><img src="img/sad_doge.gif"><br>Sorry Shibe, there is an temporary problem and we are working on it! I will try to check in 5 seconds.</div>'; header("Refresh:5"); exit();
-     };
+// Include the LibDogecoin
+require_once ROOTPATH.'/vendors/libdogecoin-php/libdogecoin-bind.php';
 
+// Add the PDO DB Connection
+$db = 'mysql:host='.$config["dbhost"].';dbname='.$config["dbname"];
+$opt = [ PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false, ];
+try {
+    $pdo = new PDO($db, $config["dbuser"], $config["dbpass"], $opt);
+}
+catch (PDOException $e) {
+    echo '<div style="top: 50%;left: 50%; position: absolute;-webkit-transform: translate(-50%, -50%);transform: translate(-50%, -50%);font-family: Comic Sans MS;word-break: break-all;max-width:416px"><img src="img/sad_doge.gif"><br>Sorry Shibe, there is an temporary problem and we are working on it! I will try to check in 5 seconds.</div>'; header("Refresh:5"); exit();
+};
 
 // class DogeBridge to be able to interact beetwin DB and Dogecoin
 class DogeBridge {
@@ -37,10 +35,8 @@ class DogeBridge {
     }
 
 
-//// LibDoge Address /////////
+//// LibDoge Address ////
   // Add Buy
-
-
   public function InsertBuy($id_product,$doge_public,$doge_private,$amount,$doge_address,$name,$email,$address,$postal_code,$country,$city,$phone,$pin)
     {
 
@@ -89,16 +85,46 @@ class DogeBridge {
       return null;
     }
 
-  // update Doge status to Paid
-  public function UpdatePaidBuy($id)
+  // update Doge status to Paid and Quantity
+  public function UpdatePaidBuy($id,$qty,$id_product)
     {
+      // we update the quantity and disable the listing if none
+      if ($qty == 1){
+        $this->pdo->query("UPDATE products SET
+        qty = ($qty - 1),
+        active = 0
+        WHERE id = '".$id_product."' limit 1");
+      }else{
+        if ($qty > 0){
+          $this->pdo->query("UPDATE products SET
+          qty = ($qty - 1)
+          WHERE id = '".$id_product."' limit 1");        
+        }
+      }
 
+      // we update the status
       $this->pdo->query("UPDATE generated SET
       paid = '1'
       WHERE id = '".$id."' limit 1");
 
       return null;
     }
+
+  // update Doge status
+  public function UpdateStatus($id_shibe,$status,$id)
+    {
+
+        // we verify if the Shibe changing the order is the owner
+        $verify = $this->pdo->query("SELECT id FROM products where id_shibe = '".$id_shibe."' and id = '".$id."' limit 1")->fetch();
+      
+        if (!isset($verify["id"])){
+          $this->pdo->query("UPDATE generated SET
+          paid = $status
+          WHERE id = '".$id."' limit 1");
+        };
+
+      return null;
+    }    
 
   // Encrypt Doge Private with a pin from the buyer
   public function EncryptPrivate($pin,$doge_private)
@@ -129,8 +155,8 @@ class DogeBridge {
       '".$lang."',
       '".$id_page."',
       '".$type."',
-      '".filter_var($title, FILTER_SANITIZE_MAGIC_QUOTES)."',
-      '".filter_var($text, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      '".filter_var($title, FILTER_SANITIZE_ADD_SLASHES)."',
+      '".filter_var($text, FILTER_SANITIZE_ADD_SLASHES)."',
       '".$ord."',
       '".$active."'
       );");
@@ -146,8 +172,8 @@ class DogeBridge {
       lang = '".$lang."',
       id_page = '".$id_page."',
       type = '".$type."',
-      title = '".filter_var($title, FILTER_SANITIZE_MAGIC_QUOTES)."',
-      text = '".filter_var($text, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      title = '".filter_var($title, FILTER_SANITIZE_ADD_SLASHES)."',
+      text = '".filter_var($text, FILTER_SANITIZE_ADD_SLASHES)."',
       ord = '".$ord."',
       active = '".$active."'
       WHERE id = '".$id."' limit 1");
@@ -198,7 +224,6 @@ class DogeBridge {
   // upload files
   public function UploadFile($file)
   {
-
     $uploaddir = ROOTPATH."/../fl";
     $random = date("mdyHis");
     if (isset($file['name'])){
@@ -217,24 +242,152 @@ class DogeBridge {
   public function UploadFiles($files)
   {
 
-    $uploaddir = ROOTPATH."/../fl";
-    $random = date("mdyHis");
-
-    $total = count($files['name']);
+    $targetDirectory = ROOTPATH."/../fl/";
+    $total = count($files["imgs"]["name"]);
     $imgs = "";
-
+    $maxFileSize = 4 * 1024 * 1024;
     for( $i=0 ; $i < $total ; $i++ ) {
-      if(is_uploaded_file($files['tmp_name'][$i])){
-          $imgs = $imgs . str_replace(' ', '',$random.$files['name'][$i]) . ",";
-          move_uploaded_file($files['tmp_name'][$i],$uploaddir.'/'.str_replace(' ', '',$random.$files['name'][$i]));
-      };
-    };
+    $imageFile = $files['imgs']['tmp_name'][$i];
+    $imageFileName = $files['imgs']['name'][$i];
+
+    // Check file size
+    if ($files['imgs']['size'][$i] > $maxFileSize) {
+       // echo 'Error: File size exceeds the maximum allowed size.';
+       return NULL;
+      exit;
+    }
+
+    // Check if the file is an image
+    $imageInfo = getimagesize($imageFile);
+    if (!$imageInfo) {
+        //echo 'Error: Invalid image file.';
+        return NULL;
+        exit;
+    }
+
+    // Determine the file extension
+    $imageFileType = strtolower(pathinfo($imageFileName, PATHINFO_EXTENSION));
+
+    // Generate a unique file name
+    $newFileName = uniqid('shibeShip_') . '.' . $imageFileType;
+    $imgs = $imgs . str_replace(' ', '',$newFileName) . ",";
+
+    // Set the target path
+    $targetPath = $targetDirectory . $newFileName;
+
+    // Resize and compress the image using GD library
+    $maxWidth = 800; // Maximum width of the resized image
+    $quality = 80; // Image quality (0-100)
+
+    list($srcWidth, $srcHeight) = $imageInfo;
+    $ratio = $srcWidth / $srcHeight;
+
+    if ($srcWidth > $maxWidth) {
+        $newWidth = $maxWidth;
+        $newHeight = $maxWidth / $ratio;
+    } else {
+        $newWidth = $srcWidth;
+        $newHeight = $srcHeight;
+    }
+
+    $srcImage = imagecreatefromstring(file_get_contents($imageFile));
+    $dstImage = imagecreatetruecolor($newWidth, $newHeight);
+
+    imagecopyresampled($dstImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $srcWidth, $srcHeight);
+
+    if ($imageFileType === 'jpeg' || $imageFileType === 'jpg') {
+        imagejpeg($dstImage, $targetPath, $quality);
+    } elseif ($imageFileType === 'png') {
+        imagepng($dstImage, $targetPath, floor($quality / 10));
+    } elseif ($imageFileType === 'gif') {
+        imagegif($dstImage, $targetPath);
+    } elseif ($imageFileType === 'webp') {
+        imagewebp($dstImage, $targetPath);
+  }
+
+    imagedestroy($srcImage);
+    imagedestroy($dstImage);
+  
+  };
 
     if (!isset($imgs)){ $imgs = ""; };
 
     return $imgs;
 
   }
+
+    // upload banner image
+    public function UploadBanner($files)
+    {
+  
+      $targetDirectory = ROOTPATH."/../fl/";
+      $banner = "";
+      $maxFileSize = 4 * 1024 * 1024;
+
+      $imageFile = $files['banner']['tmp_name'];
+      $imageFileName = $files['banner']['name'];
+  
+      // Check file size
+      if ($files['banner']['size'] > $maxFileSize) {
+         // echo 'Error: File size exceeds the maximum allowed size.';
+         return NULL;
+        exit;
+      }
+  
+      // Check if the file is an image
+      $imageInfo = getimagesize($imageFile);
+      if (!$imageInfo) {
+          //echo 'Error: Invalid image file.';
+          return NULL;
+          exit;
+      }
+  
+      // Determine the file extension
+      $imageFileType = strtolower(pathinfo($imageFileName, PATHINFO_EXTENSION));
+  
+      // Generate a unique file name
+      $newFileName = uniqid('banner_') . '.' . $imageFileType;
+      $banner = $newFileName;
+  
+      // Set the target path
+      $targetPath = $targetDirectory . $newFileName;
+  
+      // Resize and compress the image using GD library
+      $maxWidth = 2000; // Maximum width of the resized image
+      $quality = 80; // Image quality (0-100)
+  
+      list($srcWidth, $srcHeight) = $imageInfo;
+      $ratio = $srcWidth / $srcHeight;
+  
+      if ($srcWidth > $maxWidth) {
+          $newWidth = $maxWidth;
+          $newHeight = $maxWidth / $ratio;
+      } else {
+          $newWidth = $srcWidth;
+          $newHeight = $srcHeight;
+      }
+  
+      $srcImage = imagecreatefromstring(file_get_contents($imageFile));
+      $dstImage = imagecreatetruecolor($newWidth, $newHeight);
+  
+      imagecopyresampled($dstImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $srcWidth, $srcHeight);
+  
+      if ($imageFileType === 'jpeg' || $imageFileType === 'jpg') {
+          imagejpeg($dstImage, $targetPath, $quality);
+      } elseif ($imageFileType === 'png') {
+          imagepng($dstImage, $targetPath, floor($quality / 10));
+      } elseif ($imageFileType === 'gif') {
+          imagegif($dstImage, $targetPath);
+      }
+  
+      imagedestroy($srcImage);
+      imagedestroy($dstImage);
+    
+      if (!isset($banner)){ $banner = ""; };
+  
+      return $banner;
+  
+    }
 
 
   // update an existent banner
@@ -284,8 +437,8 @@ class DogeBridge {
       '".$lang."',
       '".$id_cat."',
       '".$icon."',
-      '".filter_var($title, FILTER_SANITIZE_MAGIC_QUOTES)."',
-      '".filter_var($text, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      '".filter_var($title, FILTER_SANITIZE_ADD_SLASHES)."',
+      '".filter_var($text, FILTER_SANITIZE_ADD_SLASHES)."',
       '".$img."',
       '".$ord."',
       '".$active."'
@@ -302,8 +455,8 @@ class DogeBridge {
       lang = '".$lang."',
       id_cat = '".$id_cat."',
       icon = '".$icon."',
-      title = '".filter_var($title, FILTER_SANITIZE_MAGIC_QUOTES)."',
-      text = '".filter_var($text, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      title = '".filter_var($title, FILTER_SANITIZE_ADD_SLASHES)."',
+      text = '".filter_var($text, FILTER_SANITIZE_ADD_SLASHES)."',
       img = '".$img."',
       ord = '".$ord."',
       active = '".$active."'
@@ -325,7 +478,7 @@ class DogeBridge {
 
 //// Products /////////
   // Add Product
-  public function InsertProduct($id_shibe,$id_cat,$cat_tax,$doge,$fiat,$moon_new,$moon_full,$qty,$weight,$highlighted,$title,$text,$imgs,$ord,$date,$active)
+  public function InsertProduct($id_shibe,$id_cat,$cat_tax,$doge,$fiat,$moon_new,$moon_full,$qty,$weight,$highlighted,$title,$text,$imgs,$shipto,$ord,$date,$active)
     {
 
      $this->pdo->query("INSERT INTO `products` (
@@ -342,13 +495,14 @@ class DogeBridge {
       `title`,
       `text`,
       `imgs`,
+      `shipto`,
       `ord`,
       `date`,
       `active`
       ) VALUES (
       '".$id_shibe."',
       '".$id_cat."',
-      '".filter_var($cat_tax, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      '".filter_var($cat_tax, FILTER_SANITIZE_ADD_SLASHES)."',
       '".$doge."',
       '".$fiat."',
       '".$moon_new."',
@@ -356,9 +510,10 @@ class DogeBridge {
       '".$qty."',
       '".$weight."',
       '".$highlighted."',
-      '".filter_var($title, FILTER_SANITIZE_MAGIC_QUOTES)."',
-      '".filter_var($text, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      '".filter_var($title, FILTER_SANITIZE_ADD_SLASHES)."',
+      '".filter_var($text, FILTER_SANITIZE_ADD_SLASHES)."',
       '".$imgs."',
+      '".$shipto."',
       '".$ord."',
       '".$date."',
       '".$active."'
@@ -368,12 +523,12 @@ class DogeBridge {
     }
 
   // update an existent Product
-  public function UpdateProduct($id_cat,$cat_tax,$doge,$fiat,$moon_new,$moon_full,$qty,$weight,$highlighted,$title,$text,$imgs,$ord,$date,$active,$id,$id_shibe)
+  public function UpdateProduct($id_cat,$cat_tax,$doge,$fiat,$moon_new,$moon_full,$qty,$weight,$highlighted,$title,$text,$imgs,$shipto,$ord,$date,$active,$id,$id_shibe)
     {
 
       $this->pdo->query("UPDATE products SET
       id_cat = '".$id_cat."',
-      cat_tax = '".filter_var($cat_tax, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      cat_tax = '".filter_var($cat_tax, FILTER_SANITIZE_ADD_SLASHES)."',
       doge = '".$doge."',
       fiat = '".$fiat."',
       moon_new = '".$moon_new."',
@@ -381,18 +536,20 @@ class DogeBridge {
       qty = '".$qty."',
       weight = '".$weight."',
       highlighted = '".$highlighted."',
-      title = '".filter_var($title, FILTER_SANITIZE_MAGIC_QUOTES)."',
-      text = '".filter_var($text, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      title = '".filter_var($title, FILTER_SANITIZE_ADD_SLASHES)."',
+      text = '".filter_var($text, FILTER_SANITIZE_ADD_SLASHES)."',
       imgs = '".$imgs."',
+      shipto = '".$shipto."',
       ord = '".$ord."',
       date = '".$date."',
       active = '".$active."'
       WHERE id = '".$id."' and id_shibe = '".$id_shibe."' limit 1");
 
-      return null;
+      return;
     }
+    
 
-  // Reemoves Product
+  // Removes Product
   public function RemoveProduct($id,$id_shibe)
     {
 
@@ -404,7 +561,7 @@ class DogeBridge {
 
 //// Shibes /////////
   // Add Shibe
-  public function InsertShibe($name,$email,$password,$tax_id,$address,$postal_code,$country,$city,$phone,$doge_address,$active,$date)
+  public function InsertShibe($name,$email,$twitter,$password,$tax_id,$address,$postal_code,$country,$city,$phone,$doge_address,$banner,$text,$public_info,$active,$date)
     {
       // we encrypt the password
       $password = hash('sha256', $password);
@@ -412,6 +569,7 @@ class DogeBridge {
       $this->pdo->query("INSERT INTO `shibes` (
       `name`,
       `email`,
+      `twitter`,
       `password`,
       `tax_id`,
       `address`,
@@ -420,19 +578,26 @@ class DogeBridge {
       `city`,
       `phone`,
       `doge_address`,
+      `banner`,
+      `public_info`,
+      `text`,
       `active`,
       `date`
       ) VALUES (
-      '".filter_var($name, FILTER_SANITIZE_STRING)."',
+      '".filter_var($name, FILTER_SANITIZE_ADD_SLASHES)."',
       '".$email."',
+      '".$twitter."',
       '".$password."',
       '".$tax_id."',
-      '".filter_var($address, FILTER_SANITIZE_STRING)."',
+      '".filter_var($address, FILTER_SANITIZE_ADD_SLASHES)."',
       '".$postal_code."',
-      '".filter_var($country, FILTER_SANITIZE_STRING)."',
-      '".filter_var($city, FILTER_SANITIZE_STRING)."',
+      '".filter_var($country, FILTER_SANITIZE_ADD_SLASHES)."',
+      '".filter_var($city, FILTER_SANITIZE_ADD_SLASHES)."',
       '".$phone."',
       '".$doge_address."',
+      '".$banner."',
+      '".filter_var($text, FILTER_SANITIZE_ADD_SLASHES)."',      
+      '".$public_info."',      
       '".$active."',
       '".$date."'
       );");
@@ -440,8 +605,8 @@ class DogeBridge {
       return null;
     }
 
-  // update an existent Shibe
-  public function UpdateShibe($name,$email,$password = null,$tax_id,$address,$postal_code,$country,$city,$phone,$doge_address,$active,$date,$id)
+  // Update an existent Shibe
+  public function UpdateShibe($name,$email,$twitter,$password = null,$tax_id,$address,$postal_code,$country,$city,$phone,$doge_address,$banner,$text,$public_info,$active,$date,$id)
     {
 
       // we encrypt the password if submited new
@@ -453,23 +618,28 @@ class DogeBridge {
       };
 
       $this->pdo->query("UPDATE shibes SET
-      name = '".filter_var($name, FILTER_SANITIZE_STRING)."',
+      name = '".filter_var($name, FILTER_SANITIZE_ADD_SLASHES)."',
       email = '".$email."',
+      twitter = '".$twitter."',
       tax_id = '".$tax_id."',
-      address = '".filter_var($address, FILTER_SANITIZE_STRING)."',
+      address = '".filter_var($address, FILTER_SANITIZE_ADD_SLASHES)."',
       postal_code = '".$postal_code."',
-      country = '".filter_var($country, FILTER_SANITIZE_STRING)."',
-      city = '".filter_var($city, FILTER_SANITIZE_STRING)."',
+      country = '".filter_var($country, FILTER_SANITIZE_ADD_SLASHES)."',
+      city = '".filter_var($city, FILTER_SANITIZE_ADD_SLASHES)."',
       phone = '".$phone."',
       doge_address = '".$doge_address."',
+      banner = '".$banner."',
+      text = '".filter_var($text, FILTER_SANITIZE_ADD_SLASHES)."',
+      public_info = '".$public_info."',
       active = '".$active."',
       date = '".$date."'
       WHERE id = '".$id."' limit 1");
 
       return null;
     }
+   
 
-  // update an existent Shibe
+  // Activate a Shibe Account
   public function ActivateShibe($hash,$email)
     {
       // we activate the Shibe account
@@ -480,7 +650,7 @@ class DogeBridge {
       return null;
     }
 
-  // recover an existent Shibe
+  // Recover an existent Shibe
   public function RecoverShibe($hash,$email)
     {
         // we verify if the Shibe email alredy exists
@@ -488,22 +658,24 @@ class DogeBridge {
 
         if (isset($row["password"])){
 
-        $password_verify = hash('sha256', $row["password"]); // doble hash for security, the password the verify against the original
+          $password_verify = hash('sha256', $row["password"]); // doble hash for security, the password the verify against the original
 
           if ($password_verify == $hash){ // we check if the doble hashed password is the same has on the email link
 
-          $password_email = bin2hex(random_bytes(10)); // we randomly generate a new password
-          $password = hash('sha256', $password_email); // we hash in sha256
+              $password_email = bin2hex(random_bytes(10)); // we randomly generate a new password
+              $password = hash('sha256', $password_email); // we hash in sha256
 
-        // we update the Shibe password
-          $this->pdo->query("UPDATE shibes SET
-          password = '".$password."'
-          WHERE email = '".$this->CleanEmail($email)."' limit 1");
+            // we update the Shibe password
+              $this->pdo->query("UPDATE shibes SET
+              password = '".$password."',
+              active = '1'
+              WHERE email = '".$this->CleanEmail($email)."' limit 1");
 
-        // we send the email to the shibe with the new password
-          $mail_subject = "Much recover Shibe Password!";
-          $mail_message = "Hello ".$row["name"].",<br><br>Here it is you new generated password: ".$password_email." <br><br>https://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']."?d=login<br><br>Much Thanks!";
-          $this->SendEmail($this->config["mail_name_from"],$this->config["email_from"],$this->CleanEmail($row["email"]),$mail_subject,$mail_message);
+            // we send the email to the shibe with the new password
+              $mail_subject = "Much recover Shibe Password!";
+              $mail_message = "Hello ".$row["name"].",<br><br>Here it is you new generated password: ".$password_email." <br><br><a href='https://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']."?d=login'>click here</a><br><br>Much Thanks!";
+              //$this->SendEmail($this->config["mail_name_from"],$this->config["email_from"],$this->CleanEmail($row["email"]),$mail_subject,$mail_message);
+              $this->mailx($row["email"],$this->config["email_from"],$this->config["mail_name_from"],$this->config["email_from"],$this->config["email_password"],$this->config["email_port"],$this->config["email_stmp"],$mail_subject,$mail_message);
 
           }
         }
@@ -538,8 +710,8 @@ class DogeBridge {
       ) VALUES (
       '".$id_shibe."',
       '".$country."',
-      '".filter_var($title, FILTER_SANITIZE_MAGIC_QUOTES)."',
-      '".filter_var($text, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      '".filter_var($title, FILTER_SANITIZE_ADD_SLASHES)."',
+      '".filter_var($text, FILTER_SANITIZE_ADD_SLASHES)."',
       '".$weight."',
       '".$doge."',
       '".$fiat."',
@@ -555,8 +727,8 @@ class DogeBridge {
 
       $this->pdo->query("UPDATE shipping SET
       country = '".$country."',
-      title = '".filter_var($title, FILTER_SANITIZE_MAGIC_QUOTES)."',
-      text = '".filter_var($text, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      title = '".filter_var($title, FILTER_SANITIZE_ADD_SLASHES)."',
+      text = '".filter_var($text, FILTER_SANITIZE_ADD_SLASHES)."',
       weight = '".$weight."',
       doge = '".$doge."',
       fiat = '".$fiat."',
@@ -588,7 +760,7 @@ class DogeBridge {
       `tax`,
       `active`
       ) VALUES (
-      '".filter_var($category, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      '".filter_var($category, FILTER_SANITIZE_ADD_SLASHES)."',
       '".$country."',
       '".$tax."',
       '".$active."'
@@ -602,7 +774,7 @@ class DogeBridge {
     {
 
       $this->pdo->query("UPDATE tax SET
-      category = '".filter_var($category, FILTER_SANITIZE_MAGIC_QUOTES)."',
+      category = '".filter_var($category, FILTER_SANITIZE_ADD_SLASHES)."',
       country = '".$country."',
       tax = '".$tax."',
       active = '".$active."'
@@ -611,7 +783,7 @@ class DogeBridge {
       return null;
     }
 
-  // Reemoves tax
+  // Removes tax
   public function RemoveTax($id)
     {
 
@@ -625,7 +797,7 @@ class DogeBridge {
   // cleans the sting complitly to prevent injection attacks
     public function CleanString($string)
       {
-        return filter_var(trim($string), FILTER_SANITIZE_STRING);// we clean the string
+        return filter_var(trim($string), FILTER_SANITIZE_ADD_SLASHES);// we clean the string
       }
 
   // cleans the email complitly to prevent injection attacks
@@ -699,20 +871,7 @@ class DogeBridge {
             }
         }
         if ($thephase == "new" or $thephase == "full"){ return $thephase; };
-        // Spit it out
-        /*
-        echo "<h2>Moon Phaser Demo</h2>";
-        echo "<p>Demo with date and time: ".date("l, j F Y H:i:s", $unixdate)." UTC</p>";
 
-        echo "<h2>Constants used</h2>";
-        echo "<p>Duration of Lunar Cycle is: $lunardays days</p>";
-        echo "<p>Date time of first new moon in 2000 is: 2000-01-06 18:14 UTC</p>";
-
-        echo "<h2>Calculated moon phase</h2>";
-        echo "<p>Percentage of lunation: ".round((100*$currentfrac),3)."%</p>";
-        echo "<p>The moon age is: ".round($currentdays,3)." days</p>";
-        echo "<p>The moon phase is: $thephase</p>";
-        */
         return null;
     }
 
@@ -747,15 +906,44 @@ class DogeBridge {
     // This function converts 1 Doge to Fiat
   public function DogeFiatRates($fiat) {
 
-        $price = json_decode(file_get_contents("https://api.coingecko.com/api/v3/coins/markets?vs_currency=".$fiat."&ids=dogecoin&per_page=1&page=1&sparkline=false"));
-        $price = $price[0]->current_price;
-        if (!is_numeric($price)){ // backup price calculation
-            $price = json_decode(file_get_contents("https://sochain.com//api/v2/get_price/DOGE/".$fiat));
-            $price = $price->data->prices;
-            $price = $price[0]->price;
-        };
-        return $price;
+        $db = $this->pdo->prepare("SELECT * FROM fiat where currency = ? ");
+        $db->execute([$fiat]);
+        $db = $db->fetch();
+
+        return round($db["value"], 4);
   }
+
+// This function gets the current Fiat Value of Doge each 60 seconds and updates the local DB
+public function UpdateFiatValue($fiatvalue,$fiatcurrency){
+    /*
+        $ctx = stream_context_create(array('http'=>
+          array(
+              'timeout' => 2,
+          )
+        ));
+    */
+    //$db = $this->pdo->prepare("SELECT currency FROM fiat");
+    // $db->execute();
+
+    //while ($fiat = $db->fetch()) {
+      //$value = json_decode(file_get_contents("https://api.coingecko.com/api/v3/coins/markets?vs_currency=".$fiat["currency"]."&ids=dogecoin&per_page=1&page=1&sparkline=false", false, $ctx));
+
+        if (isset($fiatvalue) and $fiatvalue > 0.0000){
+
+              $dbu = $this->pdo->prepare("UPDATE fiat SET
+              value = :value,
+              date = :date
+              WHERE currency = :currency limit 1");
+              $dbu->execute([':value'=>$fiatvalue,':date'=>date("Y-m-d H:i:s"),':currency'=>$fiatcurrency]);
+
+        //}else{
+
+          //break;
+
+        //}
+    };
+
+}
 
     // This function converts current Fiat to Doge
   public function FiatDogeRates($price = 0, $fiat) {
@@ -765,9 +953,118 @@ class DogeBridge {
 
     // This function gets a Doge Address Balance
   public function DogeBalance($doge_address) {
-
-        $doge = json_decode(file_get_contents("https://dogechain.info/api/v1/address/balance/".$doge_address));
+        $ctx = stream_context_create(array('http'=>
+            array(
+                'timeout' => 2,  //1200 Seconds is 20 Minutes
+            )
+        ));
+        $doge = json_decode(file_get_contents("https://dogechain.info/api/v1/address/balance/".$doge_address, false, $ctx));
         return $doge->balance;
+  }
+
+
+  public function upload($files){
+      if(is_array($files)) {
+  
+  
+          $uploadedFile = $files['file']['tmp_name']; 
+          $sourceProperties = getimagesize($uploadedFile);
+          $newFileName = time();
+          $dirPath = "img/";
+          $ext = pathinfo($files['file']['name'], PATHINFO_EXTENSION);
+          $imageType = $sourceProperties[2];
+  
+  
+          switch ($imageType) {
+  
+              case IMAGETYPE_PNG:
+                  $imageSrc = imagecreatefrompng($uploadedFile); 
+                  $tmp = imageResize($imageSrc,$sourceProperties[0],$sourceProperties[1]);
+                  imagepng($tmp,$dirPath.$newFileName."_thump.".$ext);
+                  break;           
+  
+              case IMAGETYPE_JPEG:
+                  $imageSrc = imagecreatefromjpeg($uploadedFile); 
+                  $tmp = imageResize($imageSrc,$sourceProperties[0],$sourceProperties[1]);
+                  imagejpeg($tmp,$dirPath.$newFileName."_thump.".$ext);
+                  break;
+              
+              case IMAGETYPE_GIF:
+                  $imageSrc = imagecreatefromgif($uploadedFile); 
+                  $tmp = imageResize($imageSrc,$sourceProperties[0],$sourceProperties[1]);
+                  imagegif($tmp,$dirPath.$newFileName."_thump.".$ext);
+                  break;
+  
+              default:
+                  echo"Invalid Image type.";
+                  exit;
+                  break;
+          }
+  
+          move_uploaded_file($uploadedFile, $dirPath.$newFileName.".".$ext);
+
+      }
+  }
+  
+  
+  public function imageResize($imageSrc,$imageWidth,$imageHeight) {
+  
+      $newImageWidth=200;
+      $newImageHeight=200;
+  
+      $newImageLayer=imagecreatetruecolor($newImageWidth,$newImageHeight);
+      imagecopyresampled($newImageLayer,$imageSrc,0,0,0,0,$newImageWidth,$newImageHeight,$imageWidth,$imageHeight);
+  
+      return $newImageLayer;
+  }
+
+  // Send emails using SMTP
+  public function mailx($email_to,$email_from,$email_from_name,$email_username,$email_password,$email_port,$email_stmp,$email_subject,$email_body){
+
+
+    if (!class_exists('PHPMailer\PHPMailer\Exception'))
+    {
+      require("vendors/PHPMailer/src/PHPMailer.php");
+      require("vendors/PHPMailer/src/SMTP.php");
+      require("vendors/PHPMailer/src/Exception.php");
+    }
+
+    $mail = new PHPMailer\PHPMailer\PHPMailer();
+    $mail->IsSMTP();
+    $mail->SMTPOptions = array(
+      'ssl' => array(
+      'verify_peer' => false,
+      'verify_peer_name' => false,
+      'allow_self_signed' => true
+      )
+    );
+
+    $mail->CharSet="UTF-8";
+    $mail->Host = $email_stmp;
+    $mail->SMTPDebug = 0;
+    $mail->Port = $email_port ; //465 or 587
+
+    $mail->SMTPSecure = 'ssl';
+    $mail->SMTPAuth = true;
+    $mail->IsHTML(true);
+
+    //Authentication
+    $mail->Username = $email_username;
+    $mail->Password = $email_password;
+
+    //Set Params
+    $mail->SetFrom($email_from, $email_from_name);
+    $mail->AddAddress($email_to);
+    $mail->addReplyTo($email_from, $email_from_name);
+    $mail->Subject = $email_subject;
+    $mail->Body = $email_body;
+
+     if(!$mail->Send()) {
+      //echo "Mailer Error: " . $mail->ErrorInfo;
+     } else {
+      //echo "Message has been sent";
+     }
+  return null;
   }
 
 };
@@ -775,10 +1072,14 @@ class DogeBridge {
     $d = new DogeBridge($LibDogecoin,$pdo,$config);
 
 
+  // global sanityse
+    $_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
+  if (isset($_POST["text"])){ $text = $_POST["text"]; }; // patch to bypass media
+    $_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRIPPED);
+  if (isset($_POST["text"])){ $_POST["text"] = $text; };  // patch to bypass media    
 
   // clean public vars to prevent injection attempts
   if(isset($_POST["fetch"])){ $_POST["fetch"] = $d->CleanString($_POST["fetch"]); };
-
   if(isset($_GET["insert"])){ $_GET["insert"] = $d->CleanString($_GET["insert"]); };
   if(isset($_GET["remove"])){ $_GET["remove"] = $d->CleanString($_GET["remove"]); };
   if(isset($_GET["c"])){ $_GET["c"] = $d->CleanString($_GET["c"]); };
@@ -801,17 +1102,7 @@ class DogeBridge {
 
   // we include the language file
   include("lang/".$_SESSION["l"].".php");
-  if ($_SESSION["l"] == "FR"){ $land = "French"; };
-  if ($_SESSION["l"] == "DE"){ $land = "Deutch"; };
-  if ($_SESSION["l"] == "ES"){ $land = "Spanish"; };
-  if ($_SESSION["l"] == "PT"){ $land = "Portuguese"; };
 
-    // if cron is runnin, we check pending orders
-    If (isset($cron)){
-    // check pending orders
-
-
-    }else{
-
-    };
+  // we include the version
+  include("v.php");
 ?>

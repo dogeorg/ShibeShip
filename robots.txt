@@ -1,0 +1,5 @@
+user-agent: *
+disallow: /admin/
+disallow: /css/
+disallow: /inc/
+disallow: /js/

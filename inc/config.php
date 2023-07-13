@@ -5,27 +5,35 @@
 *   Description: Real use case of the Dogecoin BlockChain to sell products and services
 *   License: Well, do what you want with this, be creative, you have the wheel, just reenvent and do it better! Do Only Good Everyday
 */
-//ini_set('display_errors', 1);
-session_start();
+    //ini_set('display_errors', 1);
+    session_start();
+
     // Add your Data Base credentials here!
     $config["dbhost"] = "localhost";  // put here you database adress
     $config["dbname"] = ""; // your DB name
     $config["dbuser"] = ""; // your DB username
     $config["dbpass"] = ""; // your DB password
 
-    $config["mail_name_from"] = "HappyShibes"; //name to show on all emails sent
-    $config["email_from"] = "store@localhost"; // email to show and reply on all emails sent
+    // SMTP Email Configuration
+    $config["email_stmp"] = "localhost";  // email server SMTP port
+    $config["email_port"] = 465;  // email server SMTP port
+    $config["mail_name_from"] = "ShibeShip"; //name to show on all emails sent    
+    $config["email_from"] = "marketplace@localhost"; // email SMTP username used also to send from        
+    $config["email_password"] = "";   // email server SMTP password
+    
 
-    $config["admin_user"] = "wow"; // your admin user
+    // Backoffice User and Pass
+    $config["admin_user"] = ""; // your admin user
     $config["admin_pass"] = ""; // your admin password
 
-    $config["demo"] = 0; // to active demo mode change to 1, or 0 to disable
-    $config["fiat"] = "usd"; // to active fiat option convertion insert and fiat currency eur/usd/jpy
-    $lang["default"] = "EN"; // Default Language
+    // Default configuration
+    $config["base_url"] = "https://shibeship.com/"; // the domain/sub-domain name
+    $config["demo"] = 1; // to active demo mode change to 1, or 0 to disable
+    $config["fiat"] = "USD"; // to active fiat option convertion insert and fiat currency EUR/USD/JPY
+    $config["image"] = "/img/shibeship_preview.png"; // default social share image
 
-    define('ROOTPATH', __DIR__);
+    $lang["default"] = "gb"; // Default Language
+
     // include functions
     include("functions.php");
-    // we include the DogeGarden version
-    include("v.php");
 ?>

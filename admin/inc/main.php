@@ -7,12 +7,12 @@
               <div class="inner">
                 <h3><?php echo count($pdo->query("SELECT * FROM products")->fetchAll()); ?></h3>
 
-                <p><?php echo $lang["admin_products"]; ?></p>
+                <p><?php echo $lang["admin_listings"]; ?></p>
               </div>
               <div class="icon">
                 <i class="fas fa-shopping-bag"></i>
               </div>
-              <a href="?d=products" class="small-box-footer"><?php echo $lang["admin_more_info"]; ?> <i class="fas fa-arrow-circle-right"></i></a>
+              <a href="?d=listings" class="small-box-footer"><?php echo $lang["admin_more_info"]; ?> <i class="fas fa-arrow-circle-right"></i></a>
             </div>
           </div>
           <!-- ./col -->

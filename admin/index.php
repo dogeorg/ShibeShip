@@ -17,7 +17,7 @@ if (isset($_SESSION["admin"])){
   <meta name="description" content="<?php echo $lang["admin_description"]; ?>">
   <meta name="author" content="<?php echo $lang["author"]; ?>">
   <meta name="generator" content="<?php echo $lang["generator"]; ?>">
-  <link href="../img/logo_dg.png" rel="icon" />
+  <link href="../img/logo_ss.png" rel="icon" />
 
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="../inc/vendors/AdminLTE/plugins/fontawesome-free/css/all.min.css">
@@ -81,7 +81,7 @@ if (isset($_SESSION["admin"])){
   <div class="lockscreen-item">
     <!-- lockscreen image -->
     <div class="lockscreen-image">
-      <img src="../img/logo_dgg.png" alt="DogeGarden">
+      <img src="../img/logo_ss.png" alt="ShibeShip">
     </div>
     <!-- /.lockscreen-image -->
 

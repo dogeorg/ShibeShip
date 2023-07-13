@@ -28,7 +28,7 @@ if (!isset($_SESSION["admin"])){
   <meta name="description" content="<?php echo $lang["admin_description"]; ?>">
   <meta name="author" content="<?php echo $lang["author"]; ?>">
   <meta name="generator" content="<?php echo $lang["generator"]; ?>">
-  <link href="../img/logo_dg.png" rel="icon" />
+  <link href="../img/logo_ss.png" rel="icon" />
   <link rel="stylesheet" href="../inc/vendors/AdminLTE/plugins/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="../inc/vendors/AdminLTE/plugins/flag-icon-css/css/flag-icon.min.css">
   <link rel="stylesheet" href="../inc/vendors/AdminLTE/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
@@ -104,7 +104,7 @@ if (!isset($_SESSION["admin"])){
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
     <a href="wow.php" class="brand-link" style="height: 70px !important;">
-      <img src="../img/logo_dgg.png" alt="DogeGarden" style="max-width: 50px">
+      <img src="../img/logo_ss.png" alt="ShibeShip" style="max-width: 50px">
       <span class="brand-text font-weight-light"><?php echo $lang["admin_logo"]; ?></span>
 <?php if ($config["demo"] == 1){ ?>
       <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="margin-left:-50px;margin-top:-10px">

@@ -1,0 +1,97 @@
+body {
+    font-family: 'Comic Neue' !important;
+}
+.content-wrapper{
+    background-image: url("/img/bg_doge.png");
+    background-repeat: repeat;
+    background-attachment: fixed;
+}
+.preloader{
+  background-color: rgba(244, 246, 249, 0.8);
+}
+
+.shibeship {
+    transition: transform .2s ease-in-out;
+}
+.shibeship:hover {
+    transform: rotate(360deg);
+}
+
+#product-desc > * > img{
+  width: 100% !important;
+  height: auto !important;
+}
+.brand-link > img{
+    margin-left: 12px !important;
+}
+.brand-text{
+    vertical-align: middle;
+}
+.btn{
+    border-radius: 50px;
+}
+.content-wrapper > .content {
+    padding: 0.5rem 0.5rem;
+}
+@media (max-width:960px) {
+    #runningdoge{
+        display: none;
+    }
+    a{
+        word-break:break-word !important;
+    } 
+    .tips{
+        float: none;
+    }   
+}
+
+.cardShibe:hover{
+    margin-top: -5px !important;
+    -webkit-transition: margin-top 0.2s ease-out;
+    -moz-transition: margin-top 0.2s ease-out;
+    -o-transition: margin-top 0.2s ease-out; 
+}
+
+.badge-secondary{
+    color: #fff !important;
+}
+.btn-light:hover, .nav-linkShibe:hover {
+    background-color: #ffc107 !important;
+}
+  
+.btn-light:focus, .btn-light.focus, .nav-linkShibe:focus {
+    background-color: #ffc107 !important;
+}
+
+[class*="sidebar-dark-"] .nav-sidebar > .nav-item.menu-open > .nav-link, [class*="sidebar-dark-"] .nav-sidebar > .nav-item:hover > .nav-link, [class*="sidebar-dark-"] .nav-sidebar > .nav-item > .nav-link:focus{
+    background-color: #ffc107;
+    color: #333 !important;
+}
+iframe{
+   max-width: 100% !important;
+}
+.dark-mode .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active, .dark-mode .sidebar-light-primary .nav-sidebar > .nav-item > .nav-link.active {
+    background-color: #ffc107;
+    color: #333;
+}
+[class*="sidebar-dark-"] .nav-treeview > .nav-item > .nav-link:hover, [class*="sidebar-dark-"] .nav-treeview > .nav-item > .nav-link:focus{
+    background-color: #ffc107;
+    color: #333;    
+}
+
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active, .sidebar-light-primary .nav-sidebar > .nav-item > .nav-link.active{
+    background-color: #ffc107;
+    color: #333;        
+}
+
+[class*="sidebar-dark"] .brand-link:hover {
+    color: #fff!important;
+}
+
+.mt-2, .my-2{
+    margin-top: -15px !important;    
+}
+
+.dark-mode .card-primary.card-outline {
+    border-top: 3px solid #ffc107;
+}

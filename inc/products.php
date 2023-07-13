@@ -13,7 +13,8 @@
                     <?php include("product_main.php"); //we include the product design ?>
                   <?php
                   };
-                  ?>
+                    ?>
+                  
 
 
         </div>

@@ -6,13 +6,15 @@ if(isset($_POST["action"])){
     if ( $_GET["do"] == "password" and isset($_POST["email"])){
 
         // we verify if the Shibe email exists
-        $row = $pdo->query("SELECT id,email,password FROM shibes where email = '".$d->CleanEmail($_POST["email"])."' limit 1")->fetch();
+        $row = $pdo->query("SELECT id,name,email,password FROM shibes where email = '".$d->CleanEmail($_POST["email"])."' limit 1")->fetch();
 
         if (isset($row["id"])){
             $password_verify = hash('sha256', $row["password"]); // we hash twice the password for security
             $mail_subject = "Much recover Shibe Password!";
-            $mail_message = "Hello ".$d->CleanString($_POST["name"]).",<br><br>To recover your password please click on this link: <br><br>https://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']."?shibe=recover&hash=".$password_verify."&email=".$d->CleanEmail($_POST["email"])."<br><br>Much Thanks!";
-            $d->SendEmail($config["mail_name_from"],$config["email_from"],$d->CleanEmail($_POST["email"]),$mail_subject,$mail_message);
+            $mail_message = "Hello ".$row["name"].",<br><br>To recover your password please<br><br><a href='https://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']."?shibe=recover&hash=".$password_verify."&email=".$d->CleanEmail($_POST["email"])."' >click here</a><br><br>Much Thanks!";
+
+            $d->mailx($d->CleanEmail($_POST["email"]),$config["email_from"],$config["mail_name_from"],$config["email_from"],$config["email_password"],$config["email_port"],$config["email_stmp"],$mail_subject,$mail_message);
+            //$d->SendEmail($config["mail_name_from"],$config["email_from"],$d->CleanEmail($_POST["email"]),$mail_subject,$mail_message);
 ?>
     <script>
             window.location.href = "//<?php echo $_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']; ?>?shibe=recover";
@@ -35,10 +37,10 @@ if(isset($_POST["action"])){
 };
 }else{
 ?>
-  <div class="lockscreen-item">
+  <div class="lockscreen-item" style="margin-top:40px">
     <!-- lockscreen image -->
     <div class="lockscreen-image">
-      <img src="img/logo_dgg.png" alt="DogeGarden">
+      <img src="img/logo_ss.png" alt="ShibeShip">
     </div>
     <!-- /.lockscreen-image -->
 
@@ -50,7 +52,7 @@ if(isset($_POST["action"])){
 
         <div class="input-group-append">
           <button type="submit" class="btn">
-            <i class="fas fa-users text-muted"></i>
+            <i class="fas fa-arrow-right text-muted"></i>
           </button>
         </div>
       </div>

@@ -1,7 +1,7 @@
     <!-- Main content -->
         <div class="row">
                   <?php
-                      $db = $pdo->query("SELECT p.* FROM products as p JOIN categories as c on p.id_cat = c.id and c.lang = '".$_SESSION["l"]."' where p.active = 1 order by p.ord ASC");
+                      $db = $pdo->query("SELECT p.* FROM products as p JOIN categories as c on p.id_cat = c.id and c.lang = '".$_SESSION["l"]."' where p.active = 1 order by p.id DESC");
                       while ($row = $db->fetch()) {
                          // we get the TAX for that product
                          $rowt["tax"] = 0; // we set default to zero
