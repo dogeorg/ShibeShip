@@ -1,7 +1,7 @@
 <h1 align="center">
 ShibeShip
 <br><br>
-<img src="https://shibeship.com/img/shibeship_preview.png" alt="ShibeShip - Opensource Online marketplace using LibDogecoin on Dogecoin BlockChain"/>
+<img src="img/shibeship_preview.png" alt="ShibeShip - Opensource Online marketplace using LibDogecoin on Dogecoin BlockChain"/>
 <br><br>
 </h1>
 
